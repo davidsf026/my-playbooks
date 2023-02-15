@@ -17,13 +17,18 @@
         #!/bin/bash
         cat /etc/os-release
       register: script_output
+
     - name: Concatenar saídas do script de coleta
       set_fact:
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
 
+    - name: Mostrar na tela o all_output
+      debug:
+        var: all_output
+
 - hosts: localhost
   tasks:
-  - name: Mostrar na tela o all_output
-    debug:
-      var: all_output
+    - name: Mostrar na tela o all_output
+      debug:
+        var: all_output
 
