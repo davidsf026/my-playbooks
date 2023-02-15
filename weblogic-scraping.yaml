@@ -20,7 +20,7 @@
         cacheable: true
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
     - debug:
-      var: all_output
+      msg: all_output
 
 - hosts: localhost
   tasks:
