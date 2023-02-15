@@ -10,11 +10,6 @@
       set_fact:
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
 
-    - name: Gravar saída em arquivo
-      copy:
-        content: "{{ all_output|join('\n') }}"
-        dest: "/home/david/workdir/ssm/opa.yaml"
-
     - name: Exibir saída do script de coleta de informações do WebLogic
       debug:
         var: all_output
