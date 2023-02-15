@@ -1,4 +1,13 @@
+---
 - hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Adding localhost
+      add_host:
+        hostname: "{{ item }}"
+        groups: weblogic
+      loop: "{{ guestname }}"
+- hosts: weblogic
   tasks:
     - name: Executar script de coleta de informações do WebLogic
       shell: |
