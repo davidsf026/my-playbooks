@@ -7,8 +7,6 @@
         groups: weblogic
       loop: "{{ guestname }}"
     - name: Set empty all_output variable
-      set_fact:
-        all_output: []
 
 - hosts: weblogic
   tasks:
