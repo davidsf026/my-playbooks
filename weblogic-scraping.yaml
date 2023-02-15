@@ -20,7 +20,6 @@
     - name: Concatenar saídas do script de coleta
       set_fact:
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
-      global: true
 
 - hosts: localhost
   tasks:
