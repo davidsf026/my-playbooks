@@ -41,6 +41,7 @@
         path: /tmp/weblogic-hosts.csv
         regexp: '\\n'
         replace: '\n'
+      delegate_to: localhost
 
     - name: Enviar e-mail com anexo
       mail:
@@ -53,8 +54,10 @@
         subject: Planilha Coleta de Dados Hosts WebLogic
         body: Segue, em anexo, a planilha gerada.
         attach: /tmp/weblogic-hosts.csv
+      delegate_to: localhost
 
     - name: Remover arquivo CSV
       file:
         path: /tmp/weblogic-hosts.csv
         state: absent
+      delegate_to: localhost
