@@ -26,7 +26,7 @@
 
 - hosts: localhost
   vars:
-    - output: {{ all_output }}
+    - output: "{{ all_output }}"
   tasks:
     - name: Mostrar na tela o all_output
       debug:
