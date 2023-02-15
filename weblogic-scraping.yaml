@@ -7,8 +7,7 @@
         hostname: "{{ item }}"
         groups: weblogic
       loop: "{{ guestname }}"
-
-- hosts: weblogic hosts: localhost
+- hosts: weblogic
   tasks:
     - name: Executar script de coleta de informações do WebLogic
       shell: |
@@ -19,28 +18,43 @@
         domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
         machines=$(echo "$config_xml" | grep -o '<machine>[^<]*</machine>' | sed -E 's/<machine>([^<]+)<\/machine>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//')
         datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//')
-        header="host,domain-version,machines,datasources"
         output="$(hostname),$domain_version,\"$machines\",\"$datasources\""
-        echo "$header"
-        echo "$output"
+        echo "$header$output"
       register: script_output
 
     - name: Concatenar saídas do script de coleta
       set_fact:
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
 
-    - name: Exibir saída do script de coleta de informações do WebLogic
-      debug:
-        var: all_output
+    - name: Gravar saída em um arquivo CSV
+      copy:
+        dest: /home/david/workdir/ssm/weblogic-hosts.csv
+        content: |
+          {% for line in all_output %}
+          {{ line }}{% if not loop.last %},{% endif %}
+          {% endfor %}
+        mode: '0644'
+      delegate_to: localhost
 
-    - name: Enviar e-mail com a saída da coleta de informações do WebLogic
+    - name: Substituir \n por quebra de linha no arquivo CSV
+      replace:
+        path: /home/david/workdir/ssm/weblogic-hosts.csv
+        regexp: '\\n'
+        replace: '\n'
+
+    - name: Enviar e-mail com anexo
       mail:
-        host: "smtp.gmail.com"
-        port: "587"
-        username: "david.sf026@gmail.com"
+        host: smtp.gmail.com
+        port: 587
+        username: david.sf026@gmail.com
         password: "{{ smtppwd }}"
-        to:
-          - "david.sf026@gmail.com"
-        subject: "Saída da coleta de informações do WebLogic"
-        body: "{{ all_output }}"
-      when: all_output is defined
+        from: david.sf026@gmail.com
+        to: david.sf026@gmail.com
+        subject: Planilha Coleta de Dados Hosts WebLogic
+        body: Segue, em anexo, a planilha gerada.
+        attach: /home/david/workdir/ssm/weblogic-hosts.csv
+
+    - name: Remover arquivo CSV
+      file:
+        path: /home/david/workdir/ssm/weblogic-hosts.csv
+        state: absent
