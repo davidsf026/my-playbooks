@@ -12,6 +12,7 @@
     - name: Executar script de coleta de informações do WebLogic
       shell: |
         #!/bin/bash
+        echo "{{ guestname }}"
         domain_home=$(cat /home/david/workdir/ssm/ps.txt |grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
         config_xml=$(cat "$domain_home"/config/config.xml)
         jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
