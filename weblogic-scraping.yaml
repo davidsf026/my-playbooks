@@ -12,11 +12,11 @@
 
     - name: Armazenar o conteúdo do register em um arquivo
       copy:
-        content: "{{ hello_register.stdout }}"
+        content: "{{ hello_register.msg }}"
         dest: "/tmp/hello.txt"
 
-    - name: Enviar o arquivo para o localhost
+    - name: Copiar o arquivo para o localhost
       copy:
         src: "/tmp/hello.txt"
         dest: "/tmp/hello.txt"
-        remote_src: yes
+        delegate_to: localhost
