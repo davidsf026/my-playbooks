@@ -3,25 +3,19 @@
     - name: Executar script de coleta de informações do WebLogic
       shell: |
         #!/bin/bash
-        domain_home=$(cat /home/david/workdir/ssm/ps.txt |grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-        config_xml=$(cat "$domain_home"/config/config.xml)
-        jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
-        domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-        machines=$(echo "$config_xml" | grep -o '<machine>[^<]*</machine>' | sed -E 's/<machine>([^<]+)<\/machine>/    - \1/' | awk '!seen[$0]++' | grep -vE '^    -  $')
-        datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/    - \1/' | awk '!seen[$0]++' | grep -vE '^    -  $')
-        output="- host: $(hostname)\n  domain-version: $domain_version\n  machines:\n$machines\n  datasources:\n$datasources"
-        echo "$output"
+        echo "oi"
       register: script_output
 
     - name: Concatenar saídas do script de coleta
       set_fact:
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
 
-    - name: Gravar saída em arquivo
+    - name: Salvar output em um arquivo
       copy:
         content: "{{ all_output|join('\n') }}"
-        dest: "/home/david/workdir/ssm/opa.yaml"
+        dest: "/tmp/output.txt"
 
-    - name: Exibir saída do script de coleta de informações do WebLogic
-      debug:
-        var: all_output
+    - name: Configurar output.txt como Artifact
+      tower_job_artifact:
+        job_id: "{{ tower_job_id }}"
+        artifact: "/tmp/output.txt"
