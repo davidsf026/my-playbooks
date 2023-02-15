@@ -1,4 +1,4 @@
-- name: Armazenar "Hello World" em um register e enviar o arquivo para outro host
+- name: Armazenar "Hello World" em um register e enviar o arquivo para o localhost
   hosts: GNCASNHL07923
   tasks:
     - name: Escrever "Hello World" na saída padrão
@@ -15,9 +15,8 @@
         content: "{{ hello_register.stdout }}"
         dest: "/tmp/hello.txt"
 
-    - name: Enviar o arquivo para outro host
+    - name: Enviar o arquivo para o localhost
       copy:
         src: "/tmp/hello.txt"
         dest: "/tmp/hello.txt"
         remote_src: yes
-      delegate_to: localhost
