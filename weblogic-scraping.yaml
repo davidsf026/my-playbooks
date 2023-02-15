@@ -1,5 +1,5 @@
 - name: Armazenar "Hello World" em um register e enviar o arquivo para o localhost
-  hosts: GNCASNHL07923
+  hosts: GNCASNHL07925
   tasks:
     - name: Escrever "Hello World" na saída padrão
       debug:
