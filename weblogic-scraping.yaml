@@ -7,6 +7,15 @@
         hostname: "{{ item }}"
         groups: weblogic
       loop: "{{ guestname }}"
+    - name: Define cabeçalho do CSV
+      shell: |
+        #!/bin/bash
+        header="host,domain-version,machines,datasources"
+        echo "$header"
+      register: script_output
+    - name: Concatenar saída do cabeçalho
+      set_fact:
+        all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
 - hosts: weblogic
   tasks:
     - name: Executar script de coleta de informações do WebLogic
