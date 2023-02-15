@@ -8,8 +8,7 @@
         groups: weblogic
       loop: "{{ guestname }}"
 
-- hosts: weblogic
-  gather_facts: false
+- hosts: weblogic hosts: localhost
   tasks:
     - name: Executar script de coleta de informações do WebLogic
       shell: |
@@ -26,33 +25,22 @@
         echo "$output"
       register: script_output
 
-    - name: Concatenar saídas do script de coleta de informações do WebLogic
+    - name: Concatenar saídas do script de coleta
       set_fact:
         all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
 
-- hosts: localhost
-  gather_facts: false
-  tasks:
+    - name: Exibir saída do script de coleta de informações do WebLogic
+      debug:
+        var: all_output
+
     - name: Enviar e-mail com a saída da coleta de informações do WebLogic
       mail:
         host: "smtp.gmail.com"
         port: "587"
-        username: "seu_email@gmail.com"
-        password: "sua_senha"
+        username: "david.sf026@gmail.com"
+        password: "{{ smtppwd }}"
         to:
-          - "destinatario1@example.com"
-          - "destinatario2@example.com"
+          - "david.sf026@gmail.com"
         subject: "Saída da coleta de informações do WebLogic"
         body: "{{ all_output }}"
-      async: 180
-      poll: 0
       when: all_output is defined
-
-    - name: Aguardar conclusão da execução em todos os hosts
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      with_items: "{{ ansible_play_batch }}"
-      loop_control:
-        label: "{{ item }}"
-      register: job_result
-      when: all_output
