@@ -16,11 +16,10 @@
         config_xml=$(cat "$domain_home"/config/config.xml)
         jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
         domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-        machines=$(echo "$config_xml" | grep -o '<machine>[^<]*</machine>' | sed -E 's/<machine>([^<]+)<\/machine>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//')
-        datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//')
-        header="host,domain-version,machines,datasources\\\n"
-        output="$(hostname),$domain_version,\"$machines\",\"$datasources\""
-        echo "$header$output"
+        machines=$(echo "$config_xml" | grep -o '<machine>[^<]*</machine>' | sed -E 's/<machine>([^<]+)<\/machine>/    - \1/' | awk '!seen[$0]++' | grep -vE '^    -  $')
+        datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/    - \1/' | awk '!seen[$0]++' | grep -vE '^    -  $')
+        output="- host: $(hostname)\n  domain-version: $domain_version\n  machines:\n$machines\n  datasources:\n$datasources"
+        echo "$output"
       register: script_output
 
     - name: Concatenar saídas do script de coleta
