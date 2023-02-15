@@ -4,6 +4,7 @@
       shell: |
         #!/bin/bash
         domain_home=$(cat /home/david/workdir/ssm/ps.txt |grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
+        echo $domain_home
         config_xml=$(cat "$domain_home"/config/config.xml)
         jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
         domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
