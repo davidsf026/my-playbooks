@@ -24,12 +24,8 @@
         echo "$output"
       register: script_output
 
-    - name: Concatenar saídas do script de coleta
-      set_fact:
-        all_output: "{{ all_output|default([]) + script_output.stdout_lines }}"
-
-- name: Exibir saída do script de coleta de informações do WebLogic
-  debug:
-    var: script_output.stdout_lines
-    verbosity: 2
-
+    - name: Exibir saída do script de coleta de informações do WebLogic
+      debug:
+        var: script_output.stdout_lines
+        verbosity: 2
+        msg: "Resultado do script:"
