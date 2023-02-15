@@ -12,7 +12,7 @@
     - name: Executar script de coleta de informações do WebLogic
       shell: |
         #!/bin/bash
-        domain_home=$(cat /home/david/workdir/ssm/ps.txt |grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
+        domain_home=$(cat /home/david/workdir/ps.txt |grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
         config_xml=$(cat "$domain_home"/config/config.xml)
         jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
         domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
@@ -28,7 +28,7 @@
 
     - name: Gravar saída em um arquivo CSV
       copy:
-        dest: /home/david/workdir/ssm/weblogic-hosts.csv
+        dest: /tmp/weblogic-hosts.csv
         content: |
           {% for line in all_output %}
           {{ line }}{% if not loop.last %},{% endif %}
@@ -38,7 +38,7 @@
 
     - name: Substituir \n por quebra de linha no arquivo CSV
       replace:
-        path: /home/david/workdir/ssm/weblogic-hosts.csv
+        path: /tmp/weblogic-hosts.csv
         regexp: '\\n'
         replace: '\n'
 
@@ -47,14 +47,14 @@
         host: smtp.gmail.com
         port: 587
         username: david.sf026@gmail.com
-        password: "{{ smtppwd }}"
+        password: vcnswzuhkrcybacz
         from: david.sf026@gmail.com
         to: david.sf026@gmail.com
         subject: Planilha Coleta de Dados Hosts WebLogic
         body: Segue, em anexo, a planilha gerada.
-        attach: /home/david/workdir/ssm/weblogic-hosts.csv
+        attach: /tmp/weblogic-hosts.csv
 
     - name: Remover arquivo CSV
       file:
-        path: /home/david/workdir/ssm/weblogic-hosts.csv
+        path: /tmp/weblogic-hosts.csv
         state: absent
