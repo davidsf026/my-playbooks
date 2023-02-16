@@ -3,10 +3,9 @@
   gather_facts: no
 
   tasks:
-    - add_host:
-        name: "{{ ansible_hostname }}"
-        groups: selected_hosts
+    - shell: "hostname"
+      register: hostname_output
     - set_fact:
-        hostnames: "{{ groups['selected_hosts'] }}"
+        hostnames: "{{ hostnames|default([]) + [hostname_output.stdout.strip()] }}"
     - debug:
         var: hostnames
