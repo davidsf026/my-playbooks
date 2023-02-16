@@ -23,7 +23,7 @@
       become: true
       fetch:
         src: "/tmp/hostname_report_{{ hostname_output.stdout }}.txt"
-        dest: "/tmp/hostname_report_exported_{{ hostname_output.stdout }}.txt"
+        dest: /tmp
         flat: yes
       delegate_to: localhost
 
