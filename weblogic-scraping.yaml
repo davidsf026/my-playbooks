@@ -31,5 +31,6 @@
         body: "{{ report }}"
       notify: Enviar relatório
 
-  - name: Enviar relatório
-    meta: no_log: true
+- name: Enviar relatório
+  meta: no_log: true
+  notify: Enviar relatório por e-mail
