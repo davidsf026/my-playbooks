@@ -29,3 +29,15 @@
           {% endfor %}
       run_once: yes
       delegate_to: localhost
+
+    - name: Obter o hostname
+      shell: hostname
+      register: output
+      run_once: yes
+      delegate_to: localhost
+
+    - name: Exibir o valor obtido
+      debug:
+        var: output.stdout
+      run_once: yes
+      delegate_to: localhost
