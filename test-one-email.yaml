@@ -1,0 +1,49 @@
+---
+- hosts: GNCASNHL07926, GNCASNHL07927
+  become: true
+  vars:
+    mail_body_file: "/tmp/ansible-mailing-tmp123"
+  tasks:
+    - name: Check if there is {{mail_body_file}}
+      file:
+        state: absent
+        path: "{{mail_body_file}}"
+      delegate_to: localhost
+      run_once: true
+      become: false
+
+    - name: Task looking for change, command always reports change so I used it for testing
+      command: "echo 123"
+      register: my_test
+
+    - name: Create {{mail_body_file}}
+      file:
+        state: touch
+        path: "{{mail_body_file}}"
+      delegate_to: localhost
+      run_once: true
+      become: false
+
+    - name: add line about change on host
+      shell: "echo {{inventory_hostname}} has change >> {{mail_body_file}}"
+      delegate_to: localhost
+      when: my_test.changed
+      become: false
+
+    - name: get the mail body to variable
+      register: mail_body
+      command: "cat {{mail_body_file}}"
+      delegate_to: localhost
+      run_once: True
+
+    - name: mail about change
+      mail:
+        host: smtp.gmail.com
+        port: 587
+        username: david.sf026@gmail.com
+        password: "{{ smtppwd }}"
+        from: david.sf026@gmail.com
+        to: david.sf026@gmail.com
+        subject: "Test"
+      delegate_to: localhost
+      run_once: True
