@@ -12,7 +12,7 @@
   tasks:
     - shell: |
         #!/bin/bash
-        domain_home=$(cat /tmp/ps.txt |grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
+        domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
         config_xml=$(cat "$domain_home"/config/config.xml)
         jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
         domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
@@ -25,10 +25,10 @@
 
     - name: Exibir nos logs os dados obtidos
       debug:
-        msg: |
+        msg_format: |
           HOST,DOMAIN-VERSION,MACHINES,DATASOURCES
           {% for host in ansible_play_hosts %}
-          {{ hostvars[host]['weblogic_scraping'].stdout }}
+          {{ hostvars[host]['weblogic_scraping'].stdout | regex_replace('\n', '') }}
           {% endfor %}
       run_once: yes
       delegate_to: localhost
