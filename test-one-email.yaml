@@ -1,11 +1,12 @@
 - name: Pegar hostname dos hosts GNCASNHL07926 e GNCASNHL07927
   hosts: GNCASNHL07926,GNCASNHL07927
   gather_facts: no
-  serial: 1
 
   tasks:
+    - add_host:
+        name: "{{ ansible_hostname }}"
+        groups: selected_hosts
     - set_fact:
-        hostnames: "{{ hostnames|default([]) + [inventory_hostname] }}"
-
+        hostnames: "{{ groups['selected_hosts'] }}"
     - debug:
         var: hostnames
