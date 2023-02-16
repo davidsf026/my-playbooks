@@ -1,7 +1,7 @@
 - hosts: GNCASNHL07926,GNCASNHL07927
   gather_facts: false
   tasks:
-    - shell: date
+    - shell: hostname
       register: date_res
       changed_when: false
     - debug:
