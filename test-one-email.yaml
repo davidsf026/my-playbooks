@@ -3,43 +3,23 @@
   hosts: GNCASNHL07926, GNCASNHL07927
   gather_facts: false
   tasks:
+  - name: Get current status  
+    shell: echo "123"
+    register: app_status
+  
+  - name: Create an empty fact one time and locally to store our summary email text
+    set_fact: 
+      Summary: " "
+      cacheable: yes
+    run_once: true
+    delegate_to: localhost
 
-  - name: Command to check systems for ead only mounts
-    shell: >
-      if grep "[[:space:]]ro[[:space:],]" /proc/mounts |
-        grep -v tmpfs > /dev/null ; then
-      echo 'read-only-FS';else echo 'all_good'; fi
-    register: read_only_check
+  - name: Populate the fact with more information for each host we check the status on 
+    set_fact:
+      Summary: " {{ Summary }}  {{ app_status.stdout_lines }} "
+      cacheable: yes
+    delegate_to: localhost
 
-  - name: Get the output of `hostname`
-    command: hostname
-    register: host_name
-
-- name: email report
-  hosts: localhost
-  gather_facts: false
-  vars:
-    hosts_pattern: linux_systems
-  tasks:
-
-  - name: Email report of systems with read only filesystems
-    mail:
-      host: smtp.gmail.com
-      port: 587
-      username: david.sf026@gmail.com
-      password: "{{ smtppwd }}"
-      from: david.sf026@gmail.com
-      to: david.sf026@gmail.com
-      subject: "[Read-Only FS] Testing Mail"
-      body: |
-        Report from playbook check_readonly_filesystems.
-
-        {% for host_item in lookup('inventory_hostnames', hosts_pattern, wantlist=True) %}
-        {% if hostvars[host_item]['read_only_check'] is defined and
-              hostvars[host_item]['read_only_check'].stdout is defined and
-              hostvars[host_item]['read_only_check'].stdout == "read-only-FS" %}
-        Read only - {{ hostvars[host_item]['inventory_hostname'] }} aka {{ hostvars[host_item]['host_name'].stdout }}
-        {% else %}
-        Good host - {{ hostvars[host_item]['inventory_hostname'] }} aka {{ hostvars[host_item]['host_name'].stdout }}
-        {% endif %}
-        {% endfor %}
+  - name: Print all available facts
+    ansible.builtin.debug:
+      var: ansible_facts
