@@ -1,22 +1,35 @@
-- name: Armazenar "Hello World" em um register e enviar o arquivo para o localhost
-  hosts: GNCASNHL07925
+- hosts: localhost
+  gather_facts: false
   tasks:
-    - name: Escrever "Hello World" na saída padrão
-      debug:
-        msg: "Hello World"
-      register: hello_register
+    - name: Adding localhost
+      add_host:
+        hostname: "{{ item }}"
+        groups: weblogic
+      loop: "{{ guestname }}"
 
-    - name: Exibir o conteúdo do register
-      debug:
-        var: hello_register
+- name: Analisar arquivo /etc/os-release
+  hosts: machines
+  tasks:
+    - name: Obter conteúdo do arquivo /etc/os-release
+      shell: cat /etc/os-release
+      register: os_release
 
-    - name: Armazenar o conteúdo do register em um arquivo
-      copy:
-        content: "{{ hello_register.msg }}"
-        dest: "/tmp/hello.txt"
+    - name: Gerar relatório
+      set_fact:
+        report: "{{ report | default([]) + [{'hostname': inventory_hostname, 'os_release': os_release.stdout}] }}"
 
-    - name: Copiar o arquivo para o localhost
-      copy:
-        src: "/tmp/hello.txt"
-        dest: "/tmp/hello.txt"
-        delegate_to: localhost
+  handlers:
+    - name: Enviar relatório por e-mail
+      mail:
+        host: smtp.gmail.com
+        port: 587
+        username: david.sf026@gmail.com
+        password: {{ smtppwd }}
+        from: david.sf026@gmail.com
+        to: david.sf026@gmail.com
+        subject: Relatório de OS Release
+        body: "{{ report }}"
+      notify: Enviar relatório
+
+  - name: Enviar relatório
+    meta: no_log: true
