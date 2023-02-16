@@ -5,10 +5,5 @@
   tasks:
     - set_fact:
         hostnames: "{{ hostnames|default([]) + [inventory_hostname] }}"
-- name: Exibir lista de hostnames
-  hosts: localhost
-  gather_facts: no
-
-  tasks:
     - debug:
         var: hostnames
