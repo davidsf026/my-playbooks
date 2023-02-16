@@ -22,6 +22,17 @@
         echo "$header$output"
       register: weblogic_scraping
       changed_when: false
+
+    - name: Exibir nos logs os dados obtidos
+      debug:
+        msg: |
+          HOST,DOMAIN-VERSION,MACHINES,DATASOURCES
+          {% for host in ansible_play_hosts %}
+          {{ hostvars[host]['weblogic_scraping'].stdout }}
+          {% endfor %}
+      run_once: yes
+      delegate_to: localhost
+
     - name: Enviar e-mail com o relatório
       mail:
         host: smtp.gmail.com
@@ -32,7 +43,7 @@
         to: david.sf026@gmail.com
         subject: Planilha Coleta de Dados Hosts WebLogic
         body: |
-          host,domain-version,machines,datasources
+          HOST,DOMAIN-VERSION,MACHINES,DATASOURCES
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
