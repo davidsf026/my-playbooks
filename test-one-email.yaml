@@ -9,5 +9,8 @@
         hostnames: "{{ hostnames|default([]) + [hostname_output.stdout.strip()] }}"
     - set_fact:
         all_hostnames: "{{ hostnames | join(',') }}"
-    - debug:
-        var: all_hostnames
+  - add_host:
+        name: "{{ all_hostnames }}"
+        groups: all_hostnames_group
+  - debug:
+        var: hostvars[inventory_hostname]['groups']['all_hostnames_group'][0]
