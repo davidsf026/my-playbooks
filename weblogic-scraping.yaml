@@ -1,3 +1,12 @@
+- name: Criar o arquivo de relatório
+  hosts: localhost
+  tasks:
+    - name: Criar arquivo de relatório
+      file:
+        path: /tmp/hostname_report.txt
+        state: touch
+        mode: '0644'
+
 - hosts: localhost
   gather_facts: false
   tasks:
