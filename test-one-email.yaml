@@ -25,10 +25,10 @@
 
     - name: Exibir nos logs os dados obtidos
       debug:
-        msg_format: |
+        msg: |
           HOST,DOMAIN-VERSION,MACHINES,DATASOURCES
           {% for host in ansible_play_hosts %}
-          {{ hostvars[host]['weblogic_scraping'].stdout | regex_replace('\n', '') }}
+          {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
       run_once: yes
       delegate_to: localhost
