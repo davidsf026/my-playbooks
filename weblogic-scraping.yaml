@@ -24,9 +24,12 @@
         host: smtp.gmail.com
         port: 587
         username: david.sf026@gmail.com
-        password: {{ smtppwd }}
+        password: vcnswzuhkrcybacz
         from: david.sf026@gmail.com
         to: david.sf026@gmail.com
         subject: Relatório de OS Release
         body: "{{ report }}"
       notify: Enviar relatório
+
+  - name: Enviar relatório
+    meta: no_log: true
