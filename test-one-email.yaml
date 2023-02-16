@@ -1,4 +1,13 @@
-- hosts: GNCASNHL07926,GNCASNHL07927
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Adding localhost
+      add_host:
+        hostname: "{{ item }}.wt.getnet.local"
+        groups: weblogic
+      loop: "{{ guestname }}"
+- hosts: weblogic
   gather_facts: false
   tasks:
     - shell: |
