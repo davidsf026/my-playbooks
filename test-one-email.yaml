@@ -13,5 +13,8 @@
         from: david.sf026@gmail.com
         to: david.sf026@gmail.com
         subject: Relatório de hostname
-        body: "{{ ansible_play_hosts | map('extract', hostvars, 'date_res') | map(attribute='stdout') | list }}"
+        body: |
+          {% for host in ansible_play_hosts %}
+          {{ hostvars[host]['date_res'].stdout }}
+          {% endfor %}
       run_once: yes
