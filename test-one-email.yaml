@@ -14,6 +14,7 @@
         to: david.sf026@gmail.com
         subject: Relatório de hostname
         body: |
+          hostnames
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['date_res'].stdout }}
           {% endfor %}
