@@ -7,5 +7,7 @@
       register: hostname_output
     - set_fact:
         hostnames: "{{ hostnames|default([]) + [hostname_output.stdout.strip()] }}"
+    - set_fact:
+        all_hostnames: "{{ hostnames | join(',') }}"
     - debug:
-        var: hostnames
+        var: all_hostnames
