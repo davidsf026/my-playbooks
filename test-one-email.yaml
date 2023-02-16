@@ -30,13 +30,23 @@
       run_once: yes
       delegate_to: localhost
 
-    - name: Obter o hostname
+    - name: Obter o hostname GNCASNHL07927
+      shell: hostname
+      register: output
+      run_once: yes
+
+    - name: Exibir o valor obtido GNCASNHL07927
+      debug:
+        var: output.stdout
+      run_once: yes
+
+    - name: Obter o hostname localhost
       shell: hostname
       register: output
       run_once: yes
       delegate_to: localhost
 
-    - name: Exibir o valor obtido
+    - name: Exibir o valor obtido localhost
       debug:
         var: output.stdout
       run_once: yes
