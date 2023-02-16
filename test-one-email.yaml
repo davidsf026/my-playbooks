@@ -1,25 +1,6 @@
----
-- name: gather data
-  hosts: GNCASNHL07926, GNCASNHL07927
-  gather_facts: false
+- hosts: GNCASNHL07926, GNCASNHL07927
+  gather_facts: yes
   tasks:
-  - name: Get current status  
-    shell: echo "123"
-    register: app_status
-  
-  - name: Create an empty fact one time and locally to store our summary email text
-    set_fact: 
-      Summary: " "
-      cacheable: yes
-    run_once: true
-    delegate_to: localhost
-
-  - name: Populate the fact with more information for each host we check the status on 
-    set_fact:
-      Summary: " {{ Summary }}  {{ app_status.stdout_lines }} "
-      cacheable: yes
-    delegate_to: localhost
-
-  - name: Print all available facts
-    ansible.builtin.debug:
-      var: ansible_facts
+    - name: Coletar hostname
+      set_fact:
+        all_hostnames: "{{ hostvars[host]['ansible_hostname'] }}" for host in groups['hosts'] | list }}"
