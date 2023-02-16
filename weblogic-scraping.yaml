@@ -1,47 +1,45 @@
-- hosts: localhost
+---
+- name: gather data
+  hosts: GNCASNHL07926, GNCASNHL07927
   gather_facts: false
   tasks:
-    - name: Adding localhost
-      add_host:
-        hostname: "{{ item }}"
-        groups: weblogic
-      loop: "{{ guestname }}"
 
-- name: Coletar hostname das máquinas
-  hosts: weblogic
-  tasks:
-    - name: Obter hostname da máquina
-      shell: hostname
-      register: hostname_output
+  - name: Command to check systems for ead only mounts
+    shell: >
+      if grep "[[:space:]]ro[[:space:],]" /proc/mounts |
+        grep -v tmpfs > /dev/null ; then
+      echo 'read-only-FS';else echo 'all_good'; fi
+    register: read_only_check
 
-    - name: Consolidar hostnames em um único arquivo
-      lineinfile:
-        line: "{{ hostname_output.stdout }}"
-        path: "/tmp/hostname_report_{{ hostname_output.stdout }}.txt"
-        
-    - name: Envie o arquivo para localhost
-      become: true
-      fetch:
-        src: "/tmp/hostname_report_{{ hostname_output.stdout }}.txt"
-        dest: /tmp
-        flat: yes
-      delegate_to: localhost
+  - name: Get the output of `hostname`
+    command: hostname
+    register: host_name
 
-- name: Enviar relatório por e-mail
+- name: email report
   hosts: localhost
+  gather_facts: false
+  vars:
+    hosts_pattern: linux_systems
   tasks:
-    - name: Ler o arquivo de relatório
-      slurp:
-        src: /tmp/hostname_report.txt
-      register: report_output
 
-    - name: Enviar e-mail com o relatório
-      mail:
-        host: smtp.gmail.com
-        port: 587
-        username: david.sf026@gmail.com
-        password: "{{ smtppwd }}"
-        from: david.sf026@gmail.com
-        to: david.sf026@gmail.com
-        subject: Relatório de hostname
-        body: "{{ report_output.content | b64decode }}"
+  - name: Email report of systems with read only filesystems
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      username: david.sf026@gmail.com
+      password: "{{ smtppwd }}"
+      from: david.sf026@gmail.com
+      to: david.sf026@gmail.com
+      subject: "[Read-Only FS] Testing Mail"
+      body: |
+        Report from playbook check_readonly_filesystems.
+
+        {% for host_item in lookup('inventory_hostnames', hosts_pattern, wantlist=True) %}
+        {% if hostvars[host_item]['read_only_check'] is defined and
+              hostvars[host_item]['read_only_check'].stdout is defined and
+              hostvars[host_item]['read_only_check'].stdout == "read-only-FS" %}
+        Read only - {{ hostvars[host_item]['inventory_hostname'] }} aka {{ hostvars[host_item]['host_name'].stdout }}
+        {% else %}
+        Good host - {{ hostvars[host_item]['inventory_hostname'] }} aka {{ hostvars[host_item]['host_name'].stdout }}
+        {% endif %}
+        {% endfor %}
