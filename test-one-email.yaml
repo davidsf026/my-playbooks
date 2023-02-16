@@ -1,16 +1,9 @@
-- name: Pegar hostname dos hosts GNCASNHL07926 e GNCASNHL07927
-  hosts: GNCASNHL07926,GNCASNHL07927
-  gather_facts: no
-
+- hosts: GNCASNHL07926,GNCASNHL07927
+  gather_facts: false
   tasks:
-    - shell: "hostname"
-      register: hostname_output
-    - set_fact:
-        hostnames: "{{ hostnames|default([]) + [hostname_output.stdout.strip()] }}"
-    - set_fact:
-        all_hostnames: "{{ hostnames | join(',') }}"
-  - add_host:
-        name: "{{ all_hostnames }}"
-        groups: all_hostnames_group
-  - debug:
-        var: hostvars[inventory_hostname]['groups']['all_hostnames_group'][0]
+    - shell: date
+      register: date_res
+      changed_when: false
+    - debug:
+        msg: "{{ ansible_play_hosts | map('extract', hostvars, 'date_res') | map(attribute='stdout') | list }}"
+      run_once: yes
