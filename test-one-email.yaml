@@ -1,7 +1,7 @@
 ---
 - name: gather data
   hosts: GNCASNHL07926, GNCASNHL07927
-  gather_facts: false
+  gather_facts: true
   tasks:
   - name: Get current status  
     shell: echo "123"
