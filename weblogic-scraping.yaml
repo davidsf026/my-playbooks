@@ -7,30 +7,33 @@
         groups: weblogic
       loop: "{{ guestname }}"
 
-- name: Analisar arquivo /etc/os-release
+- name: Coletar hostname das máquinas
   hosts: weblogic
   tasks:
-    - name: Obter conteúdo do arquivo /etc/os-release
-      shell: cat /etc/os-release
-      register: os_release
+    - name: Obter hostname da máquina
+      shell: hostname
+      register: hostname_output
 
-    - name: Gerar relatório
-      set_fact:
-        report: "{{ report | default([]) + [{'hostname': inventory_hostname, 'os_release': os_release.stdout}] }}"
+    - name: Consolidar hostnames em um único arquivo
+      lineinfile:
+        line: "{{ hostname_output.stdout }}"
+        path: /tmp/hostname_report.txt
 
-  handlers:
-    - name: Enviar relatório por e-mail
+- name: Enviar relatório por e-mail
+  hosts: localhost
+  tasks:
+    - name: Ler o arquivo de relatório
+      slurp:
+        src: /tmp/hostname_report.txt
+      register: report_output
+
+    - name: Enviar e-mail com o relatório
       mail:
         host: smtp.gmail.com
         port: 587
         username: david.sf026@gmail.com
-        password: vcnswzuhkrcybacz
+        password: {{ smtppwd }}
         from: david.sf026@gmail.com
         to: david.sf026@gmail.com
-        subject: Relatório de OS Release
-        body: "{{ report }}"
-      notify: Enviar relatório
-
-- name: Enviar relatório
-  meta: no_log: true
-  notify: Enviar relatório por e-mail
+        subject: Relatório de hostname
+        body: "{{ report_output.content | b64decode }}"
