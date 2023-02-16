@@ -30,6 +30,3 @@
         subject: Relatório de OS Release
         body: "{{ report }}"
       notify: Enviar relatório
-
-  - name: Enviar relatório
-    meta: no_log: true
