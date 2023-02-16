@@ -1,49 +1,45 @@
 ---
-- hosts: GNCASNHL07926, GNCASNHL07927
-  become: true
-  vars:
-    mail_body_file: "/tmp/ansible-mailing-tmp123"
+- name: gather data
+  hosts: GNCASNHL07926, GNCASNHL07927
+  gather_facts: false
   tasks:
-    - name: Check if there is {{mail_body_file}}
-      file:
-        state: absent
-        path: "{{mail_body_file}}"
-      delegate_to: localhost
-      run_once: true
-      become: false
 
-    - name: Task looking for change, command always reports change so I used it for testing
-      command: "echo 123"
-      register: my_test
+  - name: Command to check systems for ead only mounts
+    shell: >
+      if grep "[[:space:]]ro[[:space:],]" /proc/mounts |
+        grep -v tmpfs > /dev/null ; then
+      echo 'read-only-FS';else echo 'all_good'; fi
+    register: read_only_check
 
-    - name: Create {{mail_body_file}}
-      file:
-        state: touch
-        path: "{{mail_body_file}}"
-      delegate_to: localhost
-      run_once: true
-      become: false
+  - name: Get the output of `hostname`
+    command: hostname
+    register: host_name
 
-    - name: add line about change on host
-      shell: "echo {{inventory_hostname}} has change >> {{mail_body_file}}"
-      delegate_to: localhost
-      when: my_test.changed
-      become: false
+- name: email report
+  hosts: localhost
+  gather_facts: false
+  vars:
+    hosts_pattern: linux_systems
+  tasks:
 
-    - name: get the mail body to variable
-      register: mail_body
-      command: "cat {{mail_body_file}}"
-      delegate_to: localhost
-      run_once: True
+  - name: Email report of systems with read only filesystems
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      username: david.sf026@gmail.com
+      password: "{{ smtppwd }}"
+      from: david.sf026@gmail.com
+      to: david.sf026@gmail.com
+      subject: "[Read-Only FS] Testing Mail"
+      body: |
+        Report from playbook check_readonly_filesystems.
 
-    - name: mail about change
-      mail:
-        host: smtp.gmail.com
-        port: 587
-        username: david.sf026@gmail.com
-        password: "{{ smtppwd }}"
-        from: david.sf026@gmail.com
-        to: david.sf026@gmail.com
-        subject: "Test"
-      delegate_to: localhost
-      run_once: True
+        {% for host_item in lookup('inventory_hostnames', hosts_pattern, wantlist=True) %}
+        {% if hostvars[host_item]['read_only_check'] is defined and
+              hostvars[host_item]['read_only_check'].stdout is defined and
+              hostvars[host_item]['read_only_check'].stdout == "read-only-FS" %}
+        Read only - {{ hostvars[host_item]['inventory_hostname'] }} aka {{ hostvars[host_item]['host_name'].stdout }}
+        {% else %}
+        Good host - {{ hostvars[host_item]['inventory_hostname'] }} aka {{ hostvars[host_item]['host_name'].stdout }}
+        {% endif %}
+        {% endfor %}
