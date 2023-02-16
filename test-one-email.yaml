@@ -2,7 +2,7 @@
   gather_facts: false
   tasks:
     - shell: hostname
-      register: date_res
+      register: weblogic_scraping
       changed_when: false
     - name: Enviar e-mail com o relatório
       mail:
@@ -12,10 +12,10 @@
         password: "{{ smtppwd }}"
         from: david.sf026@gmail.com
         to: david.sf026@gmail.com
-        subject: Relatório de hostname
+        subject: Planilha Coleta de Dados Hosts WebLogic
         body: |
-          hostnames
+          host,domain-version,machines,datasources
           {% for host in ansible_play_hosts %}
-          {{ hostvars[host]['date_res'].stdout }}
+          {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
       run_once: yes
