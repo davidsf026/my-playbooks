@@ -10,41 +10,44 @@
 - hosts: weblogic
   gather_facts: false
   tasks:
-    - command: |
-        #!/bin/bash
-        hostname=$(cat /etc/hostname)
-        domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-        config_xml=$(cat "$domain_home"/config/config.xml)
-        jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
-        domain_info_xml=$(cat $(find $domain_home -iname domain-info.xml))
-        domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-        contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-        datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-        fusion_middleware=""
-        if echo "$domain_info_xml" | grep -q "Oracle SOA Suite"; then
-          fusion_middleware="Oracle SOA Suite"
-        fi
-        if echo "$domain_info_xml" | grep -q "Oracle Service Bus"; then
-          if [ -n "$fusion_middleware" ]; then
-            fusion_middleware+="\n"
+    - name: Buscando dados desejados através de bash script
+      command: bash
+      args:
+        stdin: |
+          #!/bin/bash
+          hostname=$(cat /etc/hostname)
+          domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
+          config_xml=$(cat "$domain_home"/config/config.xml)
+          jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
+          domain_info_xml=$(cat $(find $domain_home -iname domain-info.xml))
+          domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
+          contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          fusion_middleware=""
+          if echo "$domain_info_xml" | grep -q "Oracle SOA Suite"; then
+            fusion_middleware="Oracle SOA Suite"
           fi
-          fusion_middleware+="Oracle Service Bus"
-        fi
-        if echo "$domain_info_xml" | grep -q "Oracle Data Integrator"; then
-          if [ -n "$fusion_middleware" ]; then
-            fusion_middleware+="\n"
+          if echo "$domain_info_xml" | grep -q "Oracle Service Bus"; then
+            if [ -n "$fusion_middleware" ]; then
+              fusion_middleware+="\n"
+            fi
+            fusion_middleware+="Oracle Service Bus"
           fi
-          fusion_middleware+="Oracle Data Integrator"
-        fi
-        fusion_middleware=$(echo $fusion_middleware | sed 's/\\n/, /g')
-        domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-        config_xml=$(cat "$domain_home"/config/config.xml)
-        jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
-        domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-        contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-        datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-        output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datasources\""
-        echo "$header$output"
+          if echo "$domain_info_xml" | grep -q "Oracle Data Integrator"; then
+            if [ -n "$fusion_middleware" ]; then
+              fusion_middleware+="\n"
+            fi
+            fusion_middleware+="Oracle Data Integrator"
+          fi
+          fusion_middleware=$(echo $fusion_middleware | sed 's/\\n/, /g')
+          domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
+          config_xml=$(cat "$domain_home"/config/config.xml)
+          jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
+          domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
+          contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datasources\""
+          echo "$header$output"
       register: weblogic_scraping
       changed_when: false
 
