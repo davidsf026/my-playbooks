@@ -33,6 +33,7 @@
             fi
             fusion_middleware+="Oracle Service Bus"
           fi
+          # TESTE
           if echo "$domain_info_xml" | grep -q "Oracle Data Integrator"; then
             if [ -n "$fusion_middleware" ]; then
               fusion_middleware+="\n"
