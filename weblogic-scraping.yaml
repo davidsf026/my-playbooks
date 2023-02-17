@@ -12,13 +12,14 @@
   tasks:
     - shell: |
         #!/bin/bash
+        hostname=$(hostname)
         domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
         config_xml=$(cat "$domain_home"/config/config.xml)
         jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
         domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-        machines=$(echo "$config_xml" | grep -o '<machine>[^<]*</machine>' | sed -E 's/<machine>([^<]+)<\/machine>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+        contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v "$hostname" | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
         datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-        output="$(cat /etc/hostname),$domain_version,\"$machines\",\"$datasources\""
+        output="$hostname,\"$contingencia\",$domain_version,\"$datasources\""
         echo "$header$output"
       register: weblogic_scraping
       changed_when: false
@@ -26,7 +27,7 @@
     - name: Exibir nos logs os dados obtidos
       debug:
         msg: |
-          HOST,DOMAIN-VERSION,MACHINES,DATASOURCES
+          HOSTNAME,CONTINGÊNCIA,DOMAIN-VERSION,DATASOURCES
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
@@ -43,7 +44,7 @@
         to: david.sf026@gmail.com
         subject: Planilha Coleta de Dados Hosts WebLogic
         body: |
-          HOST,DOMAIN-VERSION,MACHINES,DATASOURCES
+          HOST,DOMAIN-VERSION,contingenciaS,DATASOURCES
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
