@@ -15,39 +15,58 @@
       args:
         stdin: |
           #!/bin/bash
+          
+          # Obtem o nome do host
           hostname=$(cat /etc/hostname)
+          
+          # Obtém o caminho para o diretório base do domínio WebLogic
           domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
+          
+          # Lê o arquivo config.xml do domínio WebLogic e armazena na variável config_xml
           config_xml=$(cat "$domain_home"/config/config.xml)
+          
+          # Lê o arquivo jdbc.xml do domínio WebLogic e armazena na variável jdbc_xml
           jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
+          
+          # Obtém informações do arquivo domain-info.xml, procurando por referências a Oracle SOA Suite, Oracle Service Bus e Oracle Data Integrator
           domain_info_xml=$(cat $(find $domain_home -iname domain-info.xml))
-          domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-          contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
           fusion_middleware=""
+          
+          # Verifica se há referência a Oracle SOA Suite no arquivo domain-info.xml
           if echo "$domain_info_xml" | grep -q "Oracle SOA Suite"; then
             fusion_middleware="Oracle SOA Suite"
           fi
+          
+          # Verifica se há referência a Oracle Service Bus no arquivo domain-info.xml
           if echo "$domain_info_xml" | grep -q "Oracle Service Bus"; then
             if [ -n "$fusion_middleware" ]; then
               fusion_middleware+="\n"
             fi
             fusion_middleware+="Oracle Service Bus"
           fi
+          
+          # Verifica se há referência a Oracle Data Integrator no arquivo domain-info.xml
           if echo "$domain_info_xml" | grep -q "Oracle Data Integrator"; then
             if [ -n "$fusion_middleware" ]; then
               fusion_middleware+="\n"
             fi
             fusion_middleware+="Oracle Data Integrator"
           fi
+          
+          # Substitui caracteres de nova linha por vírgulas
           fusion_middleware=$(echo $fusion_middleware | sed 's/\\n/, /g')
-          domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-          config_xml=$(cat "$domain_home"/config/config.xml)
-          jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
+          
+          # Obtém a versão do domínio WebLogic a partir do arquivo config.xml
           domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
+          
+          # Obtém informações de contingência a partir do arquivo config.xml
           contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
+          
+          # Obtém informações sobre os data sources a partir do arquivo jdbc.xml
           datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datasources\""
-          echo "$header$output"
+          
+          # Cria uma string de saída com as informações obtidas
+          output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datas
       register: weblogic_scraping
       changed_when: false
 
