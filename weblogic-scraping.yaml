@@ -22,7 +22,7 @@
         datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
         fusion_middleware=""
         if echo "$domain_info_xml" | grep -q "Oracle SOA Suite"; then
-          fusion_middleware="Oracle SOA Suite"
+          fusion_middleware+="Oracle SOA Suite"
         fi
         if echo "$domain_info_xml" | grep -q "Oracle Service Bus"; then
           if [ -n "$fusion_middleware" ]; then
