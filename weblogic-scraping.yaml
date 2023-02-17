@@ -27,7 +27,7 @@
     - name: Exibir nos logs os dados obtidos
       debug:
         msg: |
-          HOSTNAME,TESTE,DOMAIN-VERSION,DATASOURCES
+          HOSTNAME,CONTINGÊNCIA,DOMAIN-VERSION,DATASOURCES
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
@@ -44,7 +44,7 @@
         to: david.sf026@gmail.com
         subject: Planilha Coleta de Dados Hosts WebLogic
         body: |
-          HOST,DOMAIN-VERSION,contingenciaS,DATASOURCES
+          HOSTNAME,CONTINGÊNCIA,DOMAIN-VERSION,DATASOURCES
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
