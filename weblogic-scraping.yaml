@@ -27,7 +27,7 @@
     - name: Exibir nos logs os dados obtidos
       debug:
         msg: |
-          HOSTNAME,CONTINGENCIA,DOMAIN-VERSION,DATASOURCES
+          HOSTNAME,TESTE,DOMAIN-VERSION,DATASOURCES
           {% for host in ansible_play_hosts %}
           {{ hostvars[host]['weblogic_scraping'].stdout }}
           {% endfor %}
