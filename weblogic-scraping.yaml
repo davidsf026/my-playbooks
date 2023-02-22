@@ -41,7 +41,7 @@
           fi
           fusion_middleware=$(echo $fusion_middleware | sed 's/\\n/, /g')
           output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datasources\""
-          echo "$header$output"
+          echo "$output"
       register: weblogic_scraping
       changed_when: false
 
