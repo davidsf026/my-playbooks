@@ -15,80 +15,38 @@
       args:
         stdin: |
           #!/bin/bash
-          
-          # Obtém o nome do host atual
           hostname=$(cat /etc/hostname)
-          
-          # Obtém o diretório principal do domínio atual
           domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-          
-          # Lê o arquivo de configuração do domínio atual
           config_xml=$(cat "$domain_home"/config/config.xml)
-          
-          # Lê o arquivo de configuração do JDBC do domínio atual
           jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
-          
-          # Lê o arquivo de informações do domínio atual
           domain_info_xml=$(cat $(find $domain_home -iname domain-info.xml))
-          
-          # Obtém a versão do domínio atual
           domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-          
-          # Obtém os endereços de escuta para fins de contingência
           contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          
-          # Obtém as URLs dos data sources
           datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          
-          # Verifica se o Oracle SOA Suite está instalado no domínio atual
           fusion_middleware=""
           if echo "$domain_info_xml" | grep -q "Oracle SOA Suite"; then
             fusion_middleware="Oracle SOA Suite"
           fi
-          
-          # Verifica se o Oracle Service Bus está instalado no domínio atual
           if echo "$domain_info_xml" | grep -q "Oracle Service Bus"; then
             if [ -n "$fusion_middleware" ]; then
               fusion_middleware+="\n"
             fi
             fusion_middleware+="Oracle Service Bus"
           fi
-          
-          # Verifica se o Oracle Data Integrator está instalado no domínio atual
           if echo "$domain_info_xml" | grep -q "Oracle Data Integrator"; then
             if [ -n "$fusion_middleware" ]; then
               fusion_middleware+="\n"
             fi
             fusion_middleware+="Oracle Data Integrator"
           fi
-          
-          # Formata o texto do Oracle Fusion Middleware para incluir quebras de linha
           fusion_middleware=$(echo $fusion_middleware | sed 's/\\n/, /g')
-          
-          # Obtém novamente o diretório principal do domínio atual (pode parecer uma duplicação, mas é necessário para garantir que a variável esteja definida corretamente)
           domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-          
-          # Lê o conteúdo do arquivo config.xml e armazena em uma variável chamada config_xml
           config_xml=$(cat "$domain_home"/config/config.xml)
-          
-          # Lê o conteúdo do(s) arquivo(s) jdbc.xml que contém a string "jdbc" no nome e armazena em uma variável chamada jdbc_xml
           jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
-          
-          # Extrai a versão do domínio do arquivo config.xml e armazena em uma variável chamada domain_version
           domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-          
-          # Extrai a lista de endereços de contingência do arquivo config.xml, filtrando endereços que não correspondem a .getnet.local e removendo duplicatas
-          # Armazena a lista de endereços de contingência em uma variável chamada contingencia
           contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          
-          # Extrai a lista de URLs de datasources do arquivo jdbc.xml, filtrando somente as URLs que contém a string "jdbc"
-          # Armazena a lista de URLs de datasources em uma variável chamada datasources
           datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          
-          # Formata a saída com as informações coletadas e armazena em uma variável chamada output
           output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datasources\""
-          
-          # Imprime a saída formatada com os dados coletados
           echo "$header$output"
       register: weblogic_scraping
       changed_when: false
