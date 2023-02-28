@@ -16,59 +16,6 @@
       args:
         stdin: |
           #!/bin/bash
-          hostname=$(hostname)
-          domain_home=$(cat /tmp/ps.txt | grep nodemanager | grep -o "Dweblogic.RootDirectory=.*" | cut -d "=" -f 2 | sed 's/ -.*//g' | grep /)
-          config_xml=$(cat "$domain_home"/config/config.xml)
-          jdbc_xml=$(cat "$domain_home"/config/jdbc/*jdbc*.xml)
-          domain_info_xml=$(cat $(find $domain_home -iname domain-info.xml))
-          domain_version=$(echo "$config_xml" | grep -oE '<domain-version>[^<]+</domain-version>' | sed -E 's/<\/?domain-version>//g')
-          contingencia=$(echo "$config_xml" | grep -o '<listen-address>[^<]*</listen-address>' | grep -v .getnet.local | grep -v '<listen-address></listen-address>' | sed -E 's/<listen-address>([^<]+)<\/listen-address>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | grep -v $hostname | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          datasources=$(echo "$jdbc_xml" | grep -o '<url>[^<]*</url>' | grep jdbc | sed -E 's/<url>([^<]+)<\/url>/\1/' | awk '!seen[$0]++' | grep -vE '^ *$' | tr '\n' ',' | sed 's/,$//' | sed 's/,/, /g')
-          fusion_middleware=""
-          if echo "$domain_info_xml" | grep -q "Oracle SOA Suite"; then
-            fusion_middleware="Oracle SOA Suite"
-          fi
-          if echo "$domain_info_xml" | grep -q "Oracle Service Bus"; then
-            if [ -n "$fusion_middleware" ]; then
-              fusion_middleware+="\n"
-            fi
-            fusion_middleware+="Oracle Service Bus"
-          fi
-          if echo "$domain_info_xml" | grep -q "Oracle Data Integrator"; then
-            if [ -n "$fusion_middleware" ]; then
-              fusion_middleware+="\n"
-            fi
-            fusion_middleware+="Oracle Data Integrator"
-          fi
-          fusion_middleware=$(echo $fusion_middleware | sed 's/\\n/, /g')
-          output="$hostname,\"$contingencia\",\"$fusion_middleware\",$domain_version,\"$datasources\""
-          echo "$output"
-      register: weblogic_scraping
+          touch /home/ubuntu/oi.txt
+          sleep 60
       changed_when: false
-
-    - name: Exibir nos logs os dados obtidos
-      debug:
-        msg: |
-          HOSTNAME,CONTINGÊNCIA,FUSION-MIDDLEWARE,DOMAIN-VERSION,DATASOURCES
-          {% for host in ansible_play_hosts %}
-          {{ hostvars[host]['weblogic_scraping'].stdout }}
-          {% endfor %}
-      run_once: yes
-      delegate_to: localhost
-
-    - name: Enviar e-mail com o relatório
-      mail:
-        host: smtp.gmail.com
-        port: 587
-        username: david.sf026@gmail.com
-        password: "{{ smtppwd }}"
-        from: david.sf026@gmail.com
-        to: david.sf026@gmail.com
-        subject: Planilha Coleta de Dados Hosts WebLogic
-        body: |
-          HOSTNAME,CONTINGÊNCIA,FUSION-MIDDLEWARE,DOMAIN-VERSION,DATASOURCES
-          {% for host in ansible_play_hosts %}
-          {{ hostvars[host]['weblogic_scraping'].stdout }}
-          {% endfor %}
-      run_once: yes
-      delegate_to: localhost
