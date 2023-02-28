@@ -8,14 +8,22 @@
         groups: weblogic
       loop: "{{ guestname }}"
 - hosts: weblogic
-  serial: 1
   gather_facts: false
   tasks:
     - name: Buscando dados desejados através de bash script
+      serial: 1
       command: bash
       args:
         stdin: |
           #!/bin/bash
           touch /home/ubuntu/oi.txt
+          sleep 60
+      changed_when: false
+    - name: É um real a palma da banana
+      command: bash
+      args:
+        stdin: |
+          #!/bin/bash
+          touch /home/ubuntu/banana.txt
           sleep 60
       changed_when: false
