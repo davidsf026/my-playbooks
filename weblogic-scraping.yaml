@@ -11,7 +11,6 @@
   gather_facts: false
   tasks:
     - name: Buscando dados desejados através de bash script
-      serial: 1
       command: bash
       args:
         stdin: |
