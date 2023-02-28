@@ -8,7 +8,7 @@
         groups: weblogic
       loop: "{{ guestname }}"
 - hosts: weblogic
-  strategy: linear
+  serial: 1
   gather_facts: false
   tasks:
     - name: Buscando dados desejados através de bash script
