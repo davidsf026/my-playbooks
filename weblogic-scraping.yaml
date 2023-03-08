@@ -15,5 +15,5 @@
       args:
         stdin: |
           #!/bin/bash
-          whoami
+          whoami > /tmp/oi.txt
       changed_when: false
