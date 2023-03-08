@@ -11,6 +11,7 @@
   gather_facts: false
   tasks:
     - name: Buscando dados desejados através de bash script
+      become: no
       command: bash
       args:
         stdin: |
