@@ -15,15 +15,5 @@
       args:
         stdin: |
           #!/bin/bash
-          touch /home/ubuntu/oi.txt
-          sleep 60
-      changed_when: false
-      serial: 1
-    - name: É um real a palma da banana
-      command: bash
-      args:
-        stdin: |
-          #!/bin/bash
-          touch /home/ubuntu/banana.txt
-          sleep 60
+          whoami
       changed_when: false
